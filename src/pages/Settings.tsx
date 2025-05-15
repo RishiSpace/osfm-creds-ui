@@ -10,7 +10,7 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Alert from '../components/ui/Alert';
 import { formatDate } from '../utils';
-import { authenticateWithGoogle, disconnectFromGoogle } from '../services/googleDrive';
+import { initGoogleApi, authenticateWithGoogle, disconnectFromGoogle } from '../services/googleDrive';
 
 const Settings: React.FC = () => {
   const { state: authState, changePassword, connectGoogle, disconnectGoogle } = useAuth();
@@ -54,18 +54,19 @@ const Settings: React.FC = () => {
   
   const handleConnectGoogle = async () => {
     try {
+      console.log('Attempting to authenticate with Google...');
       const success = await authenticateWithGoogle();
-      
       if (success) {
-        connectGoogle();
+        connectGoogle(); // Update state only after successful authentication
         setSuccess('Connected to Google Drive successfully');
-        
-        setTimeout(() => {
-          setSuccess(null);
-        }, 3000);
+        console.log('Google Drive connected successfully.');
+      } else {
+        setError('Failed to authenticate with Google');
+        console.error('Authentication failed.');
       }
     } catch (error) {
       setError('Failed to connect to Google Drive');
+      console.error('Error during Google Drive connection:', error);
     }
   };
   
@@ -74,10 +75,6 @@ const Settings: React.FC = () => {
       await disconnectFromGoogle();
       disconnectGoogle();
       setSuccess('Disconnected from Google Drive');
-      
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
     } catch (error) {
       setError('Failed to disconnect from Google Drive');
     }

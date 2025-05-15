@@ -70,12 +70,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if this is the first time using the app
     const hasExistingStorage = storageExists();
     setIsInitialSetup(!hasExistingStorage);
-    
-    // Check Google authentication status
-    const googleAuthStatus = isGoogleAuthenticated();
-    if (googleAuthStatus) {
-      dispatch({ type: 'CONNECT_GOOGLE' });
-    }
+  }, []);
+
+  // Check Google authentication status
+  useEffect(() => {
+    const checkGoogleAuthStatus = async () => {
+      const googleAuthStatus = await isGoogleAuthenticated();
+      if (googleAuthStatus) {
+        dispatch({ type: 'CONNECT_GOOGLE' });
+      }
+    };
+
+    checkGoogleAuthStatus();
   }, []);
 
   const login = (password: string) => {
