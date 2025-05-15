@@ -75,7 +75,7 @@ export const authenticateWithGoogle = async (): Promise<boolean> => {
 
           // *** Set the access token for gapi ***
           if (gapi && gapi.client) {
-            gapi.client.setToken({ access_token });
+            gapi.client.setToken({ accessToken });
           }
 
           console.log('Access token acquired:', accessToken);
