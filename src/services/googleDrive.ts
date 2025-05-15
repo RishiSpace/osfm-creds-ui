@@ -87,9 +87,11 @@ const createFolderIfNeeded = async (): Promise<string> => {
 
     const folder = response.result.files?.[0];
     if (folder) {
+      console.log('Folder already exists. Folder ID:', folder.id);
       return folder.id;
     }
 
+    console.log('Creating new folder...');
     const folderResponse = await gapi.client.drive.files.create({
       resource: {
         name: DRIVE_FOLDER_NAME,
@@ -98,6 +100,7 @@ const createFolderIfNeeded = async (): Promise<string> => {
       fields: 'id',
     });
 
+    console.log('Folder created successfully. Folder ID:', folderResponse.result.id);
     return folderResponse.result.id;
   } catch (error) {
     console.error('Failed to create folder:', error);
@@ -122,38 +125,47 @@ const getBackupFileId = async (folderId: string): Promise<string | null> => {
 };
 
 // Backup data to Google Drive
-export const backupToGoogleDrive = async (data: StorageData, password: string): Promise<number> => {
+export const backupToGoogleDrive = async (data: StorageData): Promise<number> => {
   try {
     if (!accessToken) {
       throw new Error('User is not authenticated with Google');
     }
 
-    console.log('Creating backup folder in Google Drive...');
     const folderId = await createFolderIfNeeded();
-    console.log('Folder ID:', folderId);
+    const jsonData = JSON.stringify(data, null, 2);
 
-    console.log('Encrypting data...');
-    const encrypted = encryptData(data, password);
-    console.log('Encrypted data:', encrypted);
+    // --- Multipart upload ---
+    const boundary = '-------314159265358979323846';
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelimiter = `\r\n--${boundary}--`;
 
-    const fileContent = new Blob([encrypted], { type: 'application/json' });
-    console.log('File content created:', fileContent);
+    const metadata = {
+      name: DRIVE_FILE_NAME,
+      mimeType: 'application/json',
+      parents: [folderId],
+    };
 
-    console.log('Uploading file to Google Drive...');
-    const response = await gapi.client.drive.files.create({
-      resource: {
-        name: DRIVE_FILE_NAME,
-        parents: [folderId], // Ensure the folder ID is passed here
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      JSON.stringify(metadata) +
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      jsonData +
+      closeDelimiter;
+
+    const response = await gapi.client.request({
+      path: '/upload/drive/v3/files',
+      method: 'POST',
+      params: { uploadType: 'multipart' },
+      headers: {
+        'Content-Type': `multipart/related; boundary="${boundary}"`,
+        Authorization: `Bearer ${accessToken}`,
       },
-      media: {
-        mimeType: 'application/json',
-        body: fileContent,
-      },
-      fields: 'id, parents',
+      body: multipartRequestBody,
     });
 
     console.log('File uploaded successfully. File ID:', response.result.id);
-    console.log('File parents:', response.result.parents); // Log the parents to verify association
     return Date.now();
   } catch (error) {
     console.error('Backup to Google Drive failed:', error);
@@ -162,7 +174,7 @@ export const backupToGoogleDrive = async (data: StorageData, password: string): 
 };
 
 // Restore data from Google Drive
-export const restoreFromGoogleDrive = async (password: string): Promise<StorageData> => {
+export const restoreFromGoogleDrive = async (): Promise<StorageData> => {
   try {
     if (!accessToken) {
       throw new Error('User is not authenticated with Google');
@@ -175,13 +187,17 @@ export const restoreFromGoogleDrive = async (password: string): Promise<StorageD
       throw new Error('No backup found in Google Drive');
     }
 
+    console.log('Downloading JSON file from Google Drive...');
     const response = await gapi.client.drive.files.get({
       fileId,
       alt: 'media',
     });
 
-    const decrypted = decryptData(response.body, password);
-    return decrypted;
+    console.log('File downloaded successfully. Parsing JSON...');
+    const data = JSON.parse(response.body);
+    console.log('Restored data:', data);
+
+    return data;
   } catch (error) {
     console.error('Restore from Google Drive failed:', error);
     throw new Error('Failed to restore from Google Drive');

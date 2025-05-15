@@ -86,7 +86,7 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="hidden md:block w-64 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-r border-gray-200 dark:border-gray-800 h-screen sticky top-0">
+    <aside className="hidden md:block w-64 bg-white/50 dark:bg-dark-bg/50 backdrop-blur-md border-r border-gray-200 dark:border-dark-border h-screen sticky top-0">
       <div className="px-6 py-6">
         <div className="flex items-center mb-8">
           <Key className="h-8 w-8 text-blue-600 dark:text-blue-500 mr-3" />

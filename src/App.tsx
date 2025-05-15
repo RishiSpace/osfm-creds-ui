@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect} from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CredentialsProvider } from './context/CredentialsContext';
@@ -33,27 +33,29 @@ function App() {
         <SettingsProvider>
           <CredentialsProvider>
             <Router>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<Layout />}>
-                  <Route index element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="settings" element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="import-export" element={
-                    <ProtectedRoute>
-                      <ImportExport />
-                    </ProtectedRoute>
-                  } />
-                </Route>
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+              <div className="dark:bg-dark-bg min-h-screen">
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="settings" element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="import-export" element={
+                      <ProtectedRoute>
+                        <ImportExport />
+                      </ProtectedRoute>
+                    } />
+                  </Route>
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </div>
             </Router>
           </CredentialsProvider>
         </SettingsProvider>

@@ -81,7 +81,7 @@ const CredentialItem: React.FC<CredentialItemProps> = ({
   };
 
   return (
-    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+    <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-md rounded-lg border border-gray-200 dark:border-dark-border shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center">
@@ -130,7 +130,7 @@ const CredentialItem: React.FC<CredentialItemProps> = ({
             </div>
           </div>
           
-          <div className="mt-1 p-2 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 relative">
+          <div className="mt-1 p-2 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-dark-border relative">
             <pre className="text-sm whitespace-pre-wrap break-all font-mono text-gray-800 dark:text-gray-200">
               {getCredentialPreview()}
             </pre>
@@ -155,7 +155,7 @@ const CredentialItem: React.FC<CredentialItemProps> = ({
           </div>
         )}
         
-        <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-200 dark:border-dark-border">
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Updated: {formatDate(credential.updatedAt)}
           </p>

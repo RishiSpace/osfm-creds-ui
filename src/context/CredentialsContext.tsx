@@ -195,19 +195,18 @@ export const CredentialsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const backupToCloud = async () => {
-    if (!authState.masterPassword || !authState.isGoogleConnected) return;
-    
+    if (!authState.isGoogleConnected) return;
+
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
       const data: StorageData = {
         credentials: state.credentials,
         lastBackup: state.lastBackup,
       };
-      
-      const backupTime = await backupToGoogleDrive(data, authState.masterPassword);
+
+      const backupTime = await backupToGoogleDrive(data);
       dispatch({ type: 'SET_LAST_BACKUP', payload: backupTime });
-      await saveCredentials();
       dispatch({ type: 'SET_ERROR', payload: null });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Failed to backup to Google Drive' });
@@ -217,28 +216,24 @@ export const CredentialsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const restoreFromCloud = async () => {
-    if (!authState.masterPassword || !authState.isGoogleConnected) return;
-    
+    if (!authState.isGoogleConnected) return;
+
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
-      const data = await restoreFromGoogleDrive(authState.masterPassword);
-      
+      const data = await restoreFromGoogleDrive();
+
       // Merge with existing credentials
-      const mergedCredentials = mergeCredentials(
-        state.credentials, 
-        data.credentials
-      );
-      
-      dispatch({ 
-        type: 'LOAD_CREDENTIALS', 
+      const mergedCredentials = mergeCredentials(state.credentials, data.credentials);
+
+      dispatch({
+        type: 'LOAD_CREDENTIALS',
         payload: {
           credentials: mergedCredentials,
           lastBackup: Date.now(),
-        } 
+        },
       });
-      
-      await saveCredentials();
+
       dispatch({ type: 'SET_ERROR', payload: null });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Failed to restore from Google Drive' });

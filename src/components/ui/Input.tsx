@@ -38,7 +38,20 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           <input
             ref={ref}
-            className={`${inputClasses} ${icon ? 'pl-10' : ''}`}
+            className={`
+              block px-3 py-2 rounded-md border 
+              bg-white dark:bg-gray-800 
+              text-gray-900 dark:text-gray-100
+              placeholder:text-gray-400 dark:placeholder:text-gray-500
+              border-gray-300 dark:border-gray-700
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition duration-150 ease-in-out
+              ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
+              ${fullWidth ? 'w-full' : ''}
+              ${className}
+              ${icon ? 'pl-10' : ''}
+            `}
             {...props}
           />
         </div>

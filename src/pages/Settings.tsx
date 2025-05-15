@@ -3,20 +3,20 @@ import { Cloud, Lock, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useTheme } from '../context/ThemeContext';
-import { useCredentials } from '../context/CredentialsContext';
+import { useCredentials } from '../context/CredentialsContext'; // Ensure this is imported
 import Button from '../components/ui/Button';
 import Toggle from '../components/ui/Toggle';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Alert from '../components/ui/Alert';
 import { formatDate } from '../utils';
-import { initGoogleApi, authenticateWithGoogle, disconnectFromGoogle } from '../services/googleDrive';
+import {authenticateWithGoogle, disconnectFromGoogle } from '../services/googleDrive';
 
 const Settings: React.FC = () => {
   const { state: authState, changePassword, connectGoogle, disconnectGoogle } = useAuth();
   const { state: settingsState, toggleAutoBackup, toggleAllowExport, toggleGoogleSync } = useSettings();
   const { state: themeState, toggleDarkMode } = useTheme();
-  const { state: credentialsState, backupToCloud } = useCredentials();
+  const { state: credentialsState, backupToCloud, restoreFromCloud } = useCredentials(); // Import restoreFromCloud here
   
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -84,12 +84,19 @@ const Settings: React.FC = () => {
     try {
       await backupToCloud();
       setSuccess('Backup completed successfully');
-      
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError('Failed to backup to Google Drive');
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      await restoreFromCloud(); // Use restoreFromCloud here
+      setSuccess('Restore completed successfully');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      setError('Failed to restore from Google Drive');
     }
   };
 
@@ -174,6 +181,12 @@ const Settings: React.FC = () => {
                       icon={<Cloud className="h-5 w-5" />}
                     >
                       Backup Now
+                    </Button>
+                    <Button
+                      onClick={handleRestore} // Add restore button
+                      icon={<Cloud className="h-5 w-5" />}
+                    >
+                      Restore Now
                     </Button>
                     <Button
                       variant="secondary"

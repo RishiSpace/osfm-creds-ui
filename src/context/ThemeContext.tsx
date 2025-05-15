@@ -40,13 +40,29 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const savedTheme = localStorage.getItem('osfm-creds-theme');
     
-    if (savedTheme) {
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      // Use the saved theme if it exists
       dispatch({ type: 'SET_DARK_MODE', payload: savedTheme === 'dark' });
     } else {
-      // Check system preference
+      // Default to system preference if no saved theme exists
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       dispatch({ type: 'SET_DARK_MODE', payload: prefersDark });
     }
+  }, []);
+
+  // Listen for changes in system theme
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (event: MediaQueryListEvent) => {
+      dispatch({ type: 'SET_DARK_MODE', payload: event.matches });
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
   }, []);
 
   // Apply theme class to document
@@ -59,21 +75,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem('osfm-creds-theme', 'light');
     }
   }, [state.darkMode]);
-
-  // Listen for system preference changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      dispatch({ type: 'SET_DARK_MODE', payload: e.matches });
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, []);
 
   const toggleDarkMode = () => {
     dispatch({ type: 'TOGGLE_DARK_MODE' });

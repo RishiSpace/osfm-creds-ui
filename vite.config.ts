@@ -15,4 +15,7 @@ export default defineConfig({
       `.replace(/\s+/g, ' '), // Minify the CSP header
     },
   },
+  css: {
+    postcss: './postcss.config.js', // Ensure PostCSS is configured
+  },
 });
