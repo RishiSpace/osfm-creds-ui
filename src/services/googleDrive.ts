@@ -3,21 +3,9 @@ import { encryptData, decryptData } from '../utils';
 
 const DRIVE_FILE_NAME = 'osfm-creds-backup.osfmdb';
 const DRIVE_FOLDER_NAME = 'OSFM Credentials Manager';
-const ACCESS_TOKEN_KEY = 'google_access_token';
 
 let gapi: any = null;
 let accessToken: string | null = null;
-
-// Restore access token from local storage
-const restoreAccessToken = () => {
-  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (token) {
-    accessToken = token;
-    if (gapi && gapi.client) {
-      gapi.client.setToken({ access_token: token });
-    }
-  }
-};
 
 // Initialize Google API
 export const initGoogleApi = async (): Promise<void> => {
@@ -70,14 +58,6 @@ export const authenticateWithGoogle = async (): Promise<boolean> => {
             return;
           }
           accessToken = response.access_token;
-          // Store the token for persistence
-          localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-
-          // *** Set the access token for gapi ***
-          if (gapi && gapi.client) {
-            gapi.client.setToken({ accessToken });
-          }
-
           console.log('Access token acquired:', accessToken);
           resolve(true);
         },
