@@ -126,7 +126,7 @@ export const CredentialsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const { state: authState } = useAuth();
   const { state: settingsState } = useSettings();
 
-  // Load credentials from storage when authenticated
+  // Load credentials when authenticated
   useEffect(() => {
     if (authState.isAuthenticated && authState.masterPassword) {
       loadCredentials();
@@ -151,9 +151,20 @@ export const CredentialsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
       }
     };
-    
+
     autoBackup();
-  }, [state.credentials, settingsState.autoBackup, authState.isGoogleConnected]);
+  }, [state.credentials, settingsState.autoBackup, authState.isGoogleConnected, authState.isAuthenticated, authState.masterPassword, settingsState.enableGoogleSync]);
+
+  // Automatically persist credentials whenever they change
+  useEffect(() => {
+    if (authState.masterPassword) {
+      const data: StorageData = {
+        credentials: state.credentials,
+        lastBackup: state.lastBackup,
+      };
+      saveToLocalStorage(data, authState.masterPassword);
+    }
+  }, [state.credentials, state.lastBackup, authState.masterPassword]);
 
   const loadCredentials = async () => {
     if (!authState.masterPassword) return;
@@ -168,30 +179,16 @@ export const CredentialsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const saveCredentials = async () => {
-    if (!authState.masterPassword) return;
-    
-    const data: StorageData = {
-      credentials: state.credentials,
-      lastBackup: state.lastBackup,
-    };
-    
-    saveToLocalStorage(data, authState.masterPassword);
-  };
-
   const addCredential = async (credential: Omit<Credential, 'id' | 'createdAt' | 'updatedAt'>) => {
     dispatch({ type: 'ADD_CREDENTIAL', payload: credential });
-    await saveCredentials();
   };
 
   const updateCredential = async (credential: Credential) => {
     dispatch({ type: 'UPDATE_CREDENTIAL', payload: credential });
-    await saveCredentials();
   };
 
   const deleteCredential = async (id: string) => {
     dispatch({ type: 'DELETE_CREDENTIAL', payload: id });
-    await saveCredentials();
   };
 
   const backupToCloud = async () => {
@@ -244,7 +241,6 @@ export const CredentialsProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const importCredentials = async (credentials: Credential[]) => {
     dispatch({ type: 'IMPORT_CREDENTIALS', payload: credentials });
-    await saveCredentials();
   };
 
   const setSearchTerm = (term: string) => {
