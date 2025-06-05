@@ -11,6 +11,7 @@ import Modal from '../components/ui/Modal';
 import Alert from '../components/ui/Alert';
 import { formatDate } from '../utils';
 import {authenticateWithGoogle, disconnectFromGoogle } from '../services/googleDrive';
+import { registerWebAuthnCredential, authenticateWebAuthnCredential } from '../utils/WebAuthn';
 
 const Settings: React.FC = () => {
   const { state: authState, changePassword, connectGoogle, disconnectGoogle } = useAuth();
@@ -24,6 +25,9 @@ const Settings: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [is2FAEnabled, setIs2FAEnabled] = useState(
+    !!localStorage.getItem('osfm-2fa-credentialId')
+  );
   
   const handleChangePassword = () => {
     if (newPassword !== confirmPassword) {
@@ -98,6 +102,40 @@ const Settings: React.FC = () => {
     } catch (error) {
       setError('Failed to restore from Google Drive');
     }
+  };
+
+  const handleRegister2FA = async () => {
+    // Use a unique identifier for the user; fallback to a static string if not available
+    const username =
+      authState?.email ||
+      authState?.username ||
+      authState?.name ||
+      "user";
+
+    // WebAuthn returns a PublicKeyCredential, which has a 'rawId' property
+    const credential = await registerWebAuthnCredential(username);
+
+    // Type guard to ensure credential is a PublicKeyCredential
+    if (
+      credential &&
+      "rawId" in credential &&
+      credential.rawId instanceof ArrayBuffer
+    ) {
+      localStorage.setItem(
+        "osfm-2fa-credentialId",
+        btoa(String.fromCharCode(...new Uint8Array(credential.rawId)))
+      );
+      setIs2FAEnabled(true);
+      setSuccess("2FA (Passkey/Biometrics) registered successfully.");
+    } else {
+      setError("Failed to register 2FA credential.");
+    }
+  };
+
+  const handleRemove2FA = () => {
+    localStorage.removeItem('osfm-2fa-credentialId');
+    setIs2FAEnabled(false);
+    setSuccess('2FA disabled.');
   };
 
   return (
@@ -254,6 +292,25 @@ const Settings: React.FC = () => {
               onChange={toggleDarkMode}
             />
           </div>
+        </div>
+        
+        {/* Two-Factor Authentication (2FA) */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Two-Factor Authentication (2FA)
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Add an extra layer of security using Passkeys, Windows Hello, or your device's biometrics.
+          </p>
+          {is2FAEnabled ? (
+            <Button onClick={handleRemove2FA} variant="danger">
+              Remove 2FA
+            </Button>
+          ) : (
+            <Button onClick={handleRegister2FA} variant="primary">
+              Enable 2FA (Passkey/Biometrics)
+            </Button>
+          )}
         </div>
       </div>
       
